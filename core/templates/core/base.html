@@ -1,0 +1,52 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block 'title' %}Echo{% endblock %}</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="w-full shadow-sm fixed top-0 left-0 z-50 bg-white">
+        <nav class="flex justify-between items-center w-[80%] mx-auto p-3">
+            <a href="" class="text-2xl font-bold text-teal-700">Echo</a>
+            <ul class="flex justify-even space-x-10">
+                <li><i class="fa-solid fa-house text-teal-700"></i></li>
+                <li><i class="fa-solid fa-user-group text-teal-700"></i></li>
+                <li>
+                    <button id="dropdownButton" type="button"><img class="w-[25px] h-[25px] rounded-full" src="{{ profile.profile_img.url }}"></button>
+                  <div id="dropdownContent" class="absolute hidden bg-white text-gray-700 rounded shadow-lg mt-1 w-48 z-10">
+                    <a href="" class="block px-4 py-2 hover:bg-gray-100"><i class="fa-solid fa-user text-teal-700 me-2"></i> Profile</a>
+                    <div class="border-t border-gray-200"></div> 
+                    <a href="{% url 'core:logout' %}" class="block px-4 py-2 hover:bg-gray-100"><i class="fa-solid fa-right-to-bracket text-teal-700 me-2"></i> Logout</a>
+                  </div>
+                </li>
+                <li></li>
+            </ul>
+        </nav>
+    </div>
+
+    {% block 'content' %}{% endblock %}
+
+    <script>
+        const dropdownButton = document.getElementById('dropdownButton');
+        const dropdownContent = document.getElementById('dropdownContent');
+
+        dropdownButton.addEventListener('click', () => {
+            dropdownContent.classList.toggle('hidden'); // Toggle the dropdown visibility
+        });
+
+        // Close the dropdown if the user clicks outside of it
+        window.addEventListener('click', (event) => {
+            if (!dropdownButton.contains(event.target) && !dropdownContent.contains(event.target)) {
+            dropdownContent.classList.add('hidden');
+            }
+        }); 
+      </script>
+    
+</body>
+</html>

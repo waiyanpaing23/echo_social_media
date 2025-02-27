@@ -1,0 +1,200 @@
+{% extends 'core/base.html' %}
+
+{% block 'title' %}Echo{% endblock %}
+
+{% block 'content' %}
+
+{% load custom_filters %}
+<div class="flex justify-center pt-24">
+    <div class="flex w-[80%] justify-center">
+
+        <div class="w-[100%] md:w-[55%] min-h-[50vh] pb-5">
+            <button id="createPostButton" type="button" class="w-full border border-teal-500 hover:bg-teal-700 hover:text-white text-teal-700 p-2 mb-5 rounded-lg">
+                <i class="fa-solid fa-plus text-xl me-3"></i>Create Post
+            </button>
+            {% for post in posts %}
+            <div class="border-1 border-gray-400 rounded-lg px-8 py-5 mb-5">
+                <div class="flex justify-between">
+                    <div class="flex items-center">
+                        <img src="{{ profile.profile_img.url }}" class="w-[45px] h-[45px] rounded-full">
+                        <div class="ms-5">
+                            <p class="font-semibold">{{ post.user.username }}</p>
+                            <p class="text-gray-500">{{ post.created_at|time_until }}</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-4">{{post.text}}</p>
+                {% if post.image %}
+                <img src="{{ post.image.url }}" class="w-full h-[300px] md:h-[400px] rounded-lg my-3 object-cover">
+                {% endif %}
+                <div class="flex mt-3">
+                    <button class="like-button" data-post-id="{{ post.id }}">
+                        {% if post.id in liked_posts %}
+                            <i class="fa-solid fa-heart text-red-500 text-xl"></i>
+                        {% else %}
+                            <i class="fa-regular fa-heart text-xl"></i>
+                        {% endif %}
+                        <span class="text-xl ms-1 me-6 like-count">{{ post.like_set.count }}</span>
+                    </button>
+                    <button type="button" class="comment-button" data-post-id="{{ post.id }}">
+                        <i class="fa-regular fa-comment text-xl"></i><span class="ms-2 text-xl">{{ post.comment_set.count }}</span>
+                    </button>
+                    <div id="commentModal{{ post.id }}" class="fixed inset-0 flex items-center justify-center bg-black/70 bg-opacity-50 hidden z-10">
+                        <div class="bg-white rounded-lg p-8 w-1/2">
+                            <h2 class="text-2xl font-semibold mb-4">Comments</h2>
+                            {% if post.comment_set.count != 0 %}
+                            {% for comment in post.comment_set.all %}
+                            <div class="flex border-1 border-gray-400 rounded-lg p-4 mb-2">
+                                <img class="w-[30px] h-[30px] rounded-full me-3" src="{{ profile.profile_img.url }}">
+                                <div>
+                                    <p class="font-semibold pb-2">{{ comment.user.username }}</p>
+                                    <p>{{ comment.comment_text }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <p class="text-gray-700">No comments yet</p>
+                            {% endif %}
+                            <form action="{% url 'post:comment' post.id %}" method="POST">
+                                {% csrf_token %}
+                                <textarea id="commentInput{{ post.id }}" name="comment_text" class="w-full border-1 border-gray-400 rounded-lg p-2 mt-4" placeholder="Write a comment..."></textarea>
+                                <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white py-2 px-4 rounded-md">Submit</button>
+                                <button type="button" class="mt-4 bg-gray-300 hover:bg-gray-400 py-2 px-4 ms-2 rounded-md" onclick="closeModal({{ post.id }})">Close</button>
+                            </form>
+                            <div id="commentsContainer{{ post.id }}" class="mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="w-[35%] ms-8 hidden md:block">
+            <div class="fixed w-100 top-24">
+                <div class="max-h-[50vh] flex-col border-1 border-gray-400 rounded-lg py-5 px-10">
+                    <div class="flex">
+                        <img class="w-[80px] h-[80px] rounded-full" src="{{ profile.profile_img.url }}">
+                        <div class="ms-5">
+                            <p class="text-xl font-semibold my-3">{{ profile.user.username }}</p>
+                            <p>{{ profile.location }}</p>
+                        </div>
+                    </div>
+                    <p class="mb-3">{{ profile.bio }}</p>
+                </div>
+                <div class="max-h-[50vh] border-1 border-gray-400 rounded-lg hidden md:block p-5 mt-5">
+                    <p>Friends</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="createPostModal" class="fixed inset-0 flex items-center justify-center bg-black/70 bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg w-1/2">  <h2 class="text-2xl font-semibold mb-4">Create New Post</h2>
+            <form action="" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ post_form.as_p }}
+                <div class="flex justify-end">
+                    <button id="cancelPostButton" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2">Cancel</button>
+                    <button id="submitPostButton" class="bg-teal-700 hover:bg-teal-800 text-white font-bold py-2 px-4 rounded">Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).on('click', '.like-button', function() {
+        let postId = $(this).data('post-id');
+        let likeButton = $(this); // Store the button for later updates
+        let icon = likeButton.find('i');
+        let countSpan = likeButton.find('.like-count');
+
+        $.ajax({
+            type: 'POST',
+            url: `/post/like/${postId}/`, // Your like/unlike URL
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in headers
+            },
+            success: function(response) {
+                if (response.liked) {
+                    icon.removeClass('fa-regular fa-heart').addClass('fa-solid fa-heart text-red-500');
+                } else {
+                    icon.removeClass('fa-solid fa-heart text-red-500').addClass('fa-regular fa-heart');
+                }
+                countSpan.text(response.like_count);
+                console.log('Like/unlike successful');
+            },
+            error: function(xhr, status, error) {
+                console.error('Like/unlike failed:', error);
+                // Handle error (e.g., show a message to the user)
+            }
+        });
+    });
+</script>
+
+<script>
+
+    const createPostButton = document.getElementById('createPostButton');
+    const createPostModal = document.getElementById('createPostModal');
+    const cancelPostButton = document.getElementById('cancelPostButton');
+    const submitPostButton = document.getElementById('submitPostButton');
+    const postContent = document.getElementById('postContent');
+
+    createPostButton.addEventListener('click', () => {
+        createPostModal.classList.remove('hidden');
+    });
+
+    cancelPostButton.addEventListener('click', () => {
+        createPostModal.classList.add('hidden');
+        postContent.value = ''; // Clear the textarea
+    });
+
+    submitPostButton.addEventListener('click', () => {
+        // Handle post submission here (e.g., send data to server)
+        const content = postContent.value;
+        console.log("Post content:", content); // Placeholder: Replace with actual submission logic
+
+        createPostModal.classList.add('hidden');
+        postContent.value = ''; // Clear the textarea after posting
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const commentButtons = document.querySelectorAll('.comment-button');
+
+        commentButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const postId = this.dataset.postId;
+                console.log(postId);
+                const modal = document.getElementById(`commentModal${postId}`);
+                modal.classList.remove('hidden');
+            });
+        });
+    });
+
+    function closeModal(postId) {
+        const modal = document.getElementById(`commentModal${postId}`);
+        modal.classList.add('hidden');
+    }
+
+    // function submitComment(postId) {
+    //     const commentInput = document.getElementById(`commentInput${postId}`);
+    //     const commentText = commentInput.value;
+
+    //     // TODO: Send comment to the server via AJAX
+    //     console.log(`Comment for post ${postId}: ${commentText}`);
+
+    //     // TODO: Dynamically add the comment to the commentsContainer
+    //     const commentsContainer = document.getElementById(`commentsContainer${postId}`);
+    //     const newComment = document.createElement('p');
+    //     newComment.textContent = commentText;
+    //     commentsContainer.appendChild(newComment);
+
+    //     commentInput.value = ''; // Clear the input
+    //     closeModal(postId);
+    // }
+
+
+
+</script>
+{% endblock %}

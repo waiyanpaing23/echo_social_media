@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Echo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body class="h-[100vh] flex flex-col bg-teal-800 justify-center items-center">
+    <div class="w-[30%] min-h-[70vh] flex flex-col justify-center bg-white px-10 py-8 gap-4">
+        <h4 class="text-2xl font-semibold">Sign Up</h4>
+        <form action="" method="POST">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="text-red-500">
+                {% for field in form %}
+                {{ field.errors }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            {{ form.username }}
+            {% if form.username.errors %}
+            <div class="text-red-500">
+                {% for error in form.username.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {{ form.email }}
+            {% if form.email.errors %}
+            <div class="text-red-500">
+                {% for error in form.email.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+            <div class="text-red-500">
+                {% for error in form.password1.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+            <div class="text-red-500">
+                {% for error in form.password2.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <button class="w-[100%] bg-teal-800 py-2 my-4 rounded-md hover:bg-teal-700 text-white">Sign Up</button>
+            <span>Already have an account? <a href="{% url 'core:login' %}" class="text-blue-700">Login</a></span>
+        </form>
+    </div>
+</body>
+
+</html>

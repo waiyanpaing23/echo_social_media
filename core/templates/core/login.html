@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Echo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class=" h-[100vh] bg-teal-800 flex flex-col justify-center items-center">
+    <div class="w-[30%] min-h-[70vh] bg-white flex flex-col justify-center px-10 py-8 gap-4">
+            <h4 class="text-2xl font-semibold">Login</h4>
+            <h5 class="text-xl mb-4" font-semibold>Welcome Back!</h5>
+        <form action="" method="POST">
+            {% if form.errors or form.non_field_errors %}
+            <div class="bg-red-500 p-3 rounded-md mb-4">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% csrf_token %}
+
+            <!-- <input type="text" class="bg-transparent border-b-2 focus:outline-slate-300 rounded-md text-white p-3 mb-4" name="username" placeholder="Username">
+            <input type="password" class="bg-transparent border-b-2 focus:outline-slate-300 rounded-md text-white p-3 mb-4" name="password" placeholder="Password"> -->
+
+            {{ form.as_p }}
+            <button class="w-[100%] bg-teal-700 py-2 mb-4 rounded-md hover:bg-teal-700 text-white">Login</button>
+            <span>Don't have an account? <a href="{% url 'core:signup' %}" class="text-blue-700">Sign Up</a></span>
+        </form>
+    </div>
+</body>
+
+</html>
