@@ -13,14 +13,14 @@
 <body>
     <div class="w-full shadow-sm fixed top-0 left-0 z-50 bg-white">
         <nav class="flex justify-between items-center w-[80%] mx-auto p-3">
-            <a href="" class="text-2xl font-bold text-teal-700">Echo</a>
+            <a href="{% url 'core:index' %}" class="text-2xl font-bold text-teal-700">Echo</a>
             <ul class="flex justify-even space-x-10">
                 <li><i class="fa-solid fa-house text-teal-700"></i></li>
                 <li><i class="fa-solid fa-user-group text-teal-700"></i></li>
                 <li>
-                    <button id="dropdownButton" type="button"><img class="w-[25px] h-[25px] rounded-full" src="{{ profile.profile_img.url }}"></button>
+                    <button id="dropdownButton" type="button"><img class="w-[25px] h-[25px] rounded-full object-cover" src="{{ profile.profile_img.url }}"></button>
                   <div id="dropdownContent" class="absolute hidden bg-white text-gray-700 rounded shadow-lg mt-1 w-48 z-10">
-                    <a href="" class="block px-4 py-2 hover:bg-gray-100"><i class="fa-solid fa-user text-teal-700 me-2"></i> Profile</a>
+                    <a href="{% url 'core:profile' %}" class="block px-4 py-2 hover:bg-gray-100"><i class="fa-solid fa-user text-teal-700 me-2"></i> Profile</a>
                     <div class="border-t border-gray-200"></div> 
                     <a href="{% url 'core:logout' %}" class="block px-4 py-2 hover:bg-gray-100"><i class="fa-solid fa-right-to-bracket text-teal-700 me-2"></i> Logout</a>
                   </div>
@@ -31,6 +31,101 @@
     </div>
 
     {% block 'content' %}{% endblock %}
+
+    <script>
+        $(document).on('click', '.like-button', function() {
+            let postId = $(this).data('post-id');
+            let likeButton = $(this); // Store the button for later updates
+            let icon = likeButton.find('i');
+            let countSpan = likeButton.find('.like-count');
+    
+            $.ajax({
+                type: 'POST',
+                url: `/post/like/${postId}/`, // Your like/unlike URL
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in headers
+                },
+                success: function(response) {
+                    if (response.liked) {
+                        icon.removeClass('fa-regular fa-heart').addClass('fa-solid fa-heart text-red-500');
+                    } else {
+                        icon.removeClass('fa-solid fa-heart text-red-500').addClass('fa-regular fa-heart');
+                    }
+                    countSpan.text(response.like_count);
+                    console.log('Like/unlike successful');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Like/unlike failed:', error);
+                    // Handle error (e.g., show a message to the user)
+                }
+            });
+        });
+    </script>
+    
+    <script>
+    
+        const createPostButton = document.getElementById('createPostButton');
+        const createPostModal = document.getElementById('createPostModal');
+        const cancelPostButton = document.getElementById('cancelPostButton');
+        const submitPostButton = document.getElementById('submitPostButton');
+        const postContent = document.getElementById('postContent');
+    
+        createPostButton.addEventListener('click', () => {
+            createPostModal.classList.remove('hidden');
+        });
+    
+        cancelPostButton.addEventListener('click', () => {
+            createPostModal.classList.add('hidden');
+            postContent.value = ''; // Clear the textarea
+        });
+    
+        submitPostButton.addEventListener('click', () => {
+            // Handle post submission here (e.g., send data to server)
+            const content = postContent.value;
+            console.log("Post content:", content); // Placeholder: Replace with actual submission logic
+    
+            createPostModal.classList.add('hidden');
+            postContent.value = ''; // Clear the textarea after posting
+        });
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            const commentButtons = document.querySelectorAll('.comment-button');
+    
+            commentButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const postId = this.dataset.postId;
+                    console.log(postId);
+                    const modal = document.getElementById(`commentModal${postId}`);
+                    modal.classList.remove('hidden');
+                });
+            });
+        });
+    
+        function closeModal(postId) {
+            const modal = document.getElementById(`commentModal${postId}`);
+            modal.classList.add('hidden');
+        }
+    
+        // function submitComment(postId) {
+        //     const commentInput = document.getElementById(`commentInput${postId}`);
+        //     const commentText = commentInput.value;
+    
+        //     // TODO: Send comment to the server via AJAX
+        //     console.log(`Comment for post ${postId}: ${commentText}`);
+    
+        //     // TODO: Dynamically add the comment to the commentsContainer
+        //     const commentsContainer = document.getElementById(`commentsContainer${postId}`);
+        //     const newComment = document.createElement('p');
+        //     newComment.textContent = commentText;
+        //     commentsContainer.appendChild(newComment);
+    
+        //     commentInput.value = ''; // Clear the input
+        //     closeModal(postId);
+        // }
+    
+    
+    
+    </script>
 
     <script>
         const dropdownButton = document.getElementById('dropdownButton');
@@ -46,7 +141,20 @@
             dropdownContent.classList.add('hidden');
             }
         }); 
-      </script>
+    </script>
+
+    <script>
+        function loadFile(event) {
+            var reader = new FileReader();
+
+            reader.onload = function() {
+                var output = document.getElementById('profile');
+                output.src = reader.result;
+            }
+
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
     
 </body>
 </html>
